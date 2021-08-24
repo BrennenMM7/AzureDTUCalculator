@@ -2,16 +2,17 @@ import requests
 import csv
 import json
 import pandas as pd
+import multiprocessing
 import time
 
-ProcessData = []
-LogBytesData = []
-DiskWritesData = []
-DiskReadsData = []
+DataToProcess = []
 FinalData = []
 
-def SendDataRequest():
-    RequestCounter = 0
+def SendDataRequest(alldatatoprocess):
+    ProcessData = alldatatoprocess['Processor']
+    LogBytesData = alldatatoprocess['LogBytes']
+    DiskReadsData = alldatatoprocess['DiskRead']
+    DiskWritesData = alldatatoprocess['DiskWrite']
     for (p,l,dw,dr) in zip(ProcessData,LogBytesData,DiskWritesData,DiskReadsData):
         headers = {
             'Content-Type': 'application/json',
@@ -46,23 +47,30 @@ def SendDataRequest():
                 'LogBytes-DTU-Name':each['LogServiceTier']['SelectedLevel']['Name']
             })
             print('Data Request Processed Successfully')
-        RequestCounter += 1
-        print('Processing Line Number: ',RequestCounter)
+
 
 def ReadCSVData():
     with open('SQLPerformance.csv', 'r') as data:
         file = csv.DictReader(data)
         for col in file:
-            ProcessData.append(col['Processor'])
-            LogBytesData.append(col['LogBytes'])
-            DiskReadsData.append(col['DiskRead'])
-            DiskWritesData.append(col['DiskWrite'])
+            DataToProcess.append({
+                'Processor':col['Processor'],
+                'LogBytes':col['LogBytes'],
+                'DiskRead':col['DiskRead'],
+                'DiskWrite':col['DiskWrite']
+            })
 
-start_time = time.time()
 
 ReadCSVData()
-SendDataRequest()
+
+if __name__ == '__main__':
+    p = multiprocessing.Pool()
+    result = p.map(SendDataRequest, DataToProcess)
+    p.close()
+    p.join()
+
+
+
 
 df = pd.DataFrame(FinalData)
 df.to_csv('FinalDataResults.csv')
-print("--- %s seconds ---" % (time.time() - start_time))
