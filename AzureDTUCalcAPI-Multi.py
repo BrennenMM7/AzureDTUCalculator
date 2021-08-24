@@ -2,7 +2,8 @@ import requests
 import csv
 import json
 import pandas as pd
-import multiprocessing
+import multiprocessing as mp
+from concurrent.futures import ThreadPoolExecutor
 import time
 
 DataToProcess = []
@@ -27,7 +28,6 @@ def SendDataRequest(alldatatoprocess):
                         'processorTime':p
                     }]
         response = requests.post('https://dtucalculator.azurewebsites.net/api/calculate', headers=headers, params=params, json=combinedData)
-        print('HTTP STATUS CODE:',response.status_code)
         json_data = json.loads(response.content)
         ServiceTierData = json_data['SelectedServiceTiers']
         for each in ServiceTierData:
@@ -44,9 +44,11 @@ def SendDataRequest(alldatatoprocess):
                 'IOP-DTU-Name':each['IopsServiceTier']['SelectedLevel']['Name'],
                 'LogBytes-DTU-Value':each['LogServiceTier']['SelectedLevel']['Dtu'],
                 'LogBytes-True-DTU-Value':each['LogServiceTier']['DtuValue'],
-                'LogBytes-DTU-Name':each['LogServiceTier']['SelectedLevel']['Name']
+                'LogBytes-DTU-Name':each['LogServiceTier']['SelectedLevel']['Name'],
+                'TotalServiceTierName':each['TotalServiceTier']['SelectedLevel']['Dtu']
             })
-            print('Data Request Processed Successfully')
+
+
 
 
 def ReadCSVData():
@@ -58,19 +60,23 @@ def ReadCSVData():
                 'LogBytes':col['LogBytes'],
                 'DiskRead':col['DiskRead'],
                 'DiskWrite':col['DiskWrite']
-            })
+            })  
 
+
+
+start_time = time.time()
 
 ReadCSVData()
 
 if __name__ == '__main__':
-    p = multiprocessing.Pool()
-    result = p.map(SendDataRequest, DataToProcess)
-    p.close()
-    p.join()
+    pool = ThreadPoolExecutor()
+    with ThreadPoolExecutor() as exec:
+        exec.map(SendDataRequest,DataToProcess)
 
 
 
 
 df = pd.DataFrame(FinalData)
-df.to_csv('FinalDataResults.csv')
+df.to_csv('CompletedParse.csv')
+print("--- %s seconds ---" % (time.time() - start_time))
+

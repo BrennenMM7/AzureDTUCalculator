@@ -43,7 +43,8 @@ def SendDataRequest():
                 'IOP-DTU-Name':each['IopsServiceTier']['SelectedLevel']['Name'],
                 'LogBytes-DTU-Value':each['LogServiceTier']['SelectedLevel']['Dtu'],
                 'LogBytes-True-DTU-Value':each['LogServiceTier']['DtuValue'],
-                'LogBytes-DTU-Name':each['LogServiceTier']['SelectedLevel']['Name']
+                'LogBytes-DTU-Name':each['LogServiceTier']['SelectedLevel']['Name'],
+                'TotalServiceTierName':each['TotalServiceTier']['SelectedLevel']['Dtu']
             })
             print('Data Request Processed Successfully')
         RequestCounter += 1
