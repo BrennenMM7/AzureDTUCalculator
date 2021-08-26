@@ -1,5 +1,4 @@
-﻿
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
+﻿Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
 
 $ErrorActionPreference = "Stop"
 $VerbosePreference = "Continue"
