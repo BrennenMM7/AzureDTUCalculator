@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import time
 
+Cores = 0
 ProcessData = []
 LogBytesData = []
 DiskWritesData = []
@@ -18,7 +19,7 @@ def SendDataRequest():
             'Accept': 'application/json',
         }
         params = (
-            ('cores', '16'),
+            ('cores', '{}'.format(Cores)),
         )
         combinedData = [{'diskReads':dr,
                         'diskWrites':dw,
@@ -59,11 +60,20 @@ def ReadCSVData():
             DiskReadsData.append(col['DiskRead'])
             DiskWritesData.append(col['DiskWrite'])
 
+def ExportResults():
+    df = pd.DataFrame(FinalData)
+    df.to_csv('FinalDataResults.csv')
+
+def GetUserInput():
+    global Cores 
+    Cores = input("Enter Cores SQL Server has: ")
+
+#Begin Recording Execution Time
 start_time = time.time()
 
+GetUserInput()
 ReadCSVData()
 SendDataRequest()
+ExportResults()
 
-df = pd.DataFrame(FinalData)
-df.to_csv('FinalDataResults.csv')
 print("--- %s seconds ---" % (time.time() - start_time))
